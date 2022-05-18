@@ -1,15 +1,17 @@
 import React, { useState } from "react";
-import Booking from "../assets/img/booking.jpg";
+import Bookings from "../assets/img/booking.jpg";
 import "../assets/css/home.css";
 import { Badge, Button, Col, Form, Modal, Row } from "react-bootstrap";
 import TimePicker from "react-bootstrap-time-picker";
-import axios from "axios";
+import { BsChevronLeft } from "react-icons/bs";
+import Booking from "./Booking";
+// import Authaxios from "../Interceptor/Authaxios";
 
 export default function Home() {
   const height = window.innerHeight;
   const difHeight = height / 2 - 369.594 / 2;
   const [modalShow, setModalShow] = useState(false);
-  const [bookTable, setbookTable] = useState(null);
+  const [bookTable, setbookTable] = useState([]);
   const [count, setcount] = useState(1);
   const [time, settime] = useState(null);
   const [name, setname] = useState("");
@@ -17,16 +19,16 @@ export default function Home() {
   const [people, setpeople] = useState("");
 
   const tables = [
-    { table: 1, place: "Corner Seet" },
-    { table: 2, place: "Window Seet" },
-    { table: 3, place: "Center Seet" },
-    { table: 4, place: "Corner Seet" },
-    { table: 5, place: "Window Seet" },
-    { table: 6, place: "Center Seet" },
-    { table: 7, place: "Corner Seet" },
-    { table: 8, place: "Window Seet" },
-    { table: 9, place: "Center Seet" },
-    { table: 10, place: "Corner Seet" },
+    { table: 1, place: "Corner With 4 Seets", size: 4 },
+    { table: 2, place: "Window With 2 Seets", size: 2 },
+    { table: 3, place: "Center With 4 Seets", size: 4 },
+    { table: 4, place: "Corner With 2 Seets", size: 2 },
+    { table: 5, place: "Window With 4 Seets", size: 4 },
+    { table: 6, place: "Center With 2 Seets", size: 2 },
+    { table: 7, place: "Corner With 4 Seets", size: 4 },
+    { table: 8, place: "Window With 2 Seets", size: 2 },
+    { table: 9, place: "Center With 4 Seets", size: 4 },
+    { table: 10, place: "Corner With 2 Seets", size: 2 },
   ];
 
   const cancels = () => {
@@ -39,12 +41,28 @@ export default function Home() {
     settime(null);
   };
 
+  const books = (itm) => {
+    if (
+      bookTable.find((nam) => Number(nam) === Number(itm.table)) === itm.table
+    ) {
+      var arr = [...bookTable];
+      for (var i = 0; i < arr.length; i++) {
+        if (arr[i] === itm.table) {
+          arr.splice(i, 1);
+        }
+      }
+      setbookTable(arr);
+    } else {
+      setbookTable((bookTable) => [...bookTable, itm.table]);
+    }
+  };
+
   const counting = () => {
     if (count === 1) {
       setcount(2);
     } else {
       setModalShow(false);
-      // axios
+      // Authaxios
       //   .post("apiCall")
       //   .then((res) => {
       //     console.log(res.data);
@@ -61,15 +79,16 @@ export default function Home() {
   return (
     <div className="entire" style={{ height: `${height}px` }}>
       <div className="dim" style={{ height: `${height}px` }}>
-        <div className="booking" style={{ top: `${difHeight}px` }}>
-          <img src={Booking} alt="booking" />
+        {/* <div className="booking" style={{ top: `${difHeight}px` }}>
+          <img src={Bookings} alt="booking" />
           <h3 className="text-center text-secondary m-4">No Booking</h3>
           <center>
             <Button variant="success" onClick={() => setModalShow(true)}>
               Book Table
             </Button>
           </center>
-        </div>
+        </div> */}
+        <Booking />
       </div>
       <Modal
         show={modalShow}
@@ -80,33 +99,20 @@ export default function Home() {
         <Modal.Header>
           <Modal.Title
             id="contained-modal-title-vcenter"
-            style={{ margin: "auto" }}
+            className="d-flex w-100"
           >
-            Book Your Table
+            {count === 2 ? (
+              <BsChevronLeft
+                className="mt-2"
+                style={{ cursor: "pointer" }}
+                onClick={() => setcount(1)}
+              />
+            ) : null}
+            <div className="w-100 text-center">Book Your Table</div>
           </Modal.Title>
         </Modal.Header>
         <Modal.Body className="m-3">
           {count === 1 ? (
-            <Row>
-              {tables.map((itm, index) => (
-                <Col lg={3} key={index} className="mb-5">
-                  <Button
-                    variant={
-                      itm.table === bookTable
-                        ? "secondary"
-                        : "outline-secondary"
-                    }
-                    onClick={() => setbookTable(itm.table)}
-                  >
-                    <p className="mb-0">Table {itm.table}</p>
-                    <Badge bg="warning" text="dark">
-                      {itm.place}
-                    </Badge>
-                  </Button>
-                </Col>
-              ))}
-            </Row>
-          ) : (
             <Form>
               <Form.Group className="mb-3" controlId="formBasicEmail">
                 <Form.Label>Name</Form.Label>
@@ -149,6 +155,50 @@ export default function Home() {
                 />
               </Form.Group>
             </Form>
+          ) : (
+            <Row>
+              {tables.map((itm, index) =>
+                people >= 4 ? (
+                  <Col lg={3} key={index} className="mb-5">
+                    <Button
+                      variant={
+                        bookTable.length &&
+                        bookTable.find(
+                          (nam) => Number(nam) === Number(itm.table)
+                        ) === itm.table
+                          ? "info"
+                          : "outline-info"
+                      }
+                      onClick={() => books(itm)}
+                    >
+                      <p className="mb-0">Table {itm.table}</p>
+                      <Badge bg="warning" text="dark">
+                        {itm.place}
+                      </Badge>
+                    </Button>
+                  </Col>
+                ) : itm.size === 2 ? (
+                  <Col lg={3} key={index} className="mb-5">
+                    <Button
+                      variant={
+                        bookTable.length &&
+                        bookTable.find(
+                          (nam) => Number(nam) === Number(itm.table)
+                        ) === itm.table
+                          ? "info"
+                          : "outline-info"
+                      }
+                      onClick={() => books(itm)}
+                    >
+                      <p className="mb-0">Table {itm.table}</p>
+                      <Badge bg="warning" text="dark">
+                        {itm.place}
+                      </Badge>
+                    </Button>
+                  </Col>
+                ) : null
+              )}
+            </Row>
           )}
         </Modal.Body>
         <Modal.Footer>
@@ -161,17 +211,17 @@ export default function Home() {
                 variant="success"
                 className="w-25"
                 onClick={counting}
-                disabled={bookTable === null ? true : false}
+                // disabled={
+                //   name !== "" && number !== "" && people !== "" && time !== null
+                //     ? false
+                //     : true
+                // }
               >
                 Next
               </Button>
             ) : (
               <Button
-                disabled={
-                  name !== "" && number !== "" && people !== "" && time !== null
-                    ? false
-                    : true
-                }
+                disabled={bookTable === null ? true : false}
                 variant="success"
                 className="w-25"
                 onClick={counting}
