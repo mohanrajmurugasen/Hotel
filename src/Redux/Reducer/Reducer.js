@@ -1,7 +1,7 @@
 import { Type } from "../Type/Type";
 
 const homeState = {
-  home: "home",
+  home: null,
 };
 
 export const homeReducer = (state = homeState, { type, payload }) => {

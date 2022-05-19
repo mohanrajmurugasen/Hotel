@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Bookings from "../assets/img/booking.jpg";
 import "../assets/css/home.css";
 import { Badge, Button, Col, Form, Modal, Row } from "react-bootstrap";
 import TimePicker from "react-bootstrap-time-picker";
 import { BsChevronLeft } from "react-icons/bs";
 import Booking from "./Booking";
+import { useDispatch, useSelector } from "react-redux";
+import { homeProduct } from "../Redux/Action/Action";
+import moment from "moment";
 // import Authaxios from "../Interceptor/Authaxios";
 
 export default function Home() {
@@ -13,10 +16,14 @@ export default function Home() {
   const [modalShow, setModalShow] = useState(false);
   const [bookTable, setbookTable] = useState([]);
   const [count, setcount] = useState(1);
-  const [time, settime] = useState(null);
+  const [time, settime] = useState("00:00");
   const [name, setname] = useState("");
   const [number, setnumber] = useState("");
   const [people, setpeople] = useState("");
+  const [timeErr, settimeErr] = useState(true);
+
+  const dispatch = useDispatch();
+  const token = useSelector((state) => state.addHome.home);
 
   const tables = [
     { table: 1, place: "Corner With 4 Seets", size: 4 },
@@ -38,7 +45,7 @@ export default function Home() {
     setname("");
     setnumber("");
     setpeople("");
-    settime(null);
+    settime("00:00");
   };
 
   const books = (itm) => {
@@ -57,11 +64,15 @@ export default function Home() {
     }
   };
 
+  const times = moment().startOf("day").seconds(time).format("H:mm");
+
   const counting = () => {
     if (count === 1) {
       setcount(2);
     } else {
       setModalShow(false);
+      localStorage.setItem("user", "demo");
+      dispatch(homeProduct("demo"));
       // Authaxios
       //   .post("apiCall")
       //   .then((res) => {
@@ -76,19 +87,41 @@ export default function Home() {
     }
   };
 
+  useEffect(() => {
+    if (
+      Number(times.split(":")[0]) >= 19 &&
+      Number(times.split(":")[0]) <= 20
+    ) {
+      if (Number(times.split(":")[0]) === 20) {
+        if (Number(times.split(":")[1]) === 0) {
+          settimeErr(false);
+        } else {
+          settimeErr(true);
+        }
+      } else {
+        settimeErr(false);
+      }
+    } else {
+      settimeErr(true);
+    }
+  }, [times]);
+
   return (
     <div className="entire" style={{ height: `${height}px` }}>
       <div className="dim" style={{ height: `${height}px` }}>
-        {/* <div className="booking" style={{ top: `${difHeight}px` }}>
-          <img src={Bookings} alt="booking" />
-          <h3 className="text-center text-secondary m-4">No Booking</h3>
-          <center>
-            <Button variant="success" onClick={() => setModalShow(true)}>
-              Book Table
-            </Button>
-          </center>
-        </div> */}
-        <Booking />
+        {token === null ? (
+          <div className="booking" style={{ top: `${difHeight}px` }}>
+            <img src={Bookings} alt="booking" />
+            <h3 className="text-center text-secondary m-4">No Booking</h3>
+            <center>
+              <Button variant="success" onClick={() => setModalShow(true)}>
+                Book Table
+              </Button>
+            </center>
+          </div>
+        ) : (
+          <Booking />
+        )}
       </div>
       <Modal
         show={modalShow}
@@ -150,9 +183,14 @@ export default function Home() {
                   start="00:00"
                   end="24:00"
                   step={30}
-                  onChange={(e) => settime(e)}
+                  onChange={settime}
                   value={time}
                 />
+                {timeErr ? (
+                  <span className="text-danger">
+                    * Dinner only available till 8:00PM
+                  </span>
+                ) : null}
               </Form.Group>
             </Form>
           ) : (
@@ -162,7 +200,6 @@ export default function Home() {
                   <Col lg={3} key={index} className="mb-5">
                     <Button
                       variant={
-                        bookTable.length &&
                         bookTable.find(
                           (nam) => Number(nam) === Number(itm.table)
                         ) === itm.table
@@ -181,7 +218,6 @@ export default function Home() {
                   <Col lg={3} key={index} className="mb-5">
                     <Button
                       variant={
-                        bookTable.length &&
                         bookTable.find(
                           (nam) => Number(nam) === Number(itm.table)
                         ) === itm.table
@@ -211,11 +247,11 @@ export default function Home() {
                 variant="success"
                 className="w-25"
                 onClick={counting}
-                // disabled={
-                //   name !== "" && number !== "" && people !== "" && time !== null
-                //     ? false
-                //     : true
-                // }
+                disabled={
+                  name !== "" && number !== "" && people !== "" && time !== null
+                    ? false
+                    : true
+                }
               >
                 Next
               </Button>
