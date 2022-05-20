@@ -210,7 +210,7 @@ export default function Home() {
             <Row>
               {tables.map((itm, index) =>
                 people >= 4 ? (
-                  <Col lg={3} key={index} className="mb-5">
+                  <Col lg={3} md={3} sm={6} xs={6} key={index} className="mb-5">
                     <Button
                       variant={
                         bookTable.find(
@@ -228,7 +228,7 @@ export default function Home() {
                     </Button>
                   </Col>
                 ) : itm.size === 2 ? (
-                  <Col lg={3} key={index} className="mb-5">
+                  <Col lg={3} md={3} sm={6} xs={6} key={index} className="mb-5">
                     <Button
                       variant={
                         bookTable.find(
