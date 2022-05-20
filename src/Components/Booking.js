@@ -1,23 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { Badge, Button, Form, Modal } from "react-bootstrap";
+import { Badge, Button, Col, Form, Modal, Row } from "react-bootstrap";
 import Bookings from "../assets/img/booking.jpg";
 import "../assets/css/booking.css";
 import TimePicker from "react-bootstrap-time-picker";
 import { useDispatch } from "react-redux";
 import { homeProduct } from "../Redux/Action/Action";
 import Authaxios from "../Interceptor/Authaxios";
+import moment from "moment";
 
 export default function Booking() {
   const height = window.innerHeight;
   const difHeight = height / 2 - 460.5 / 2;
   const [modalShow, setModalShow] = useState(false);
   const [modal, setmodal] = useState(1);
-  const [time, settime] = useState(null);
+  const [time, settime] = useState("00:00");
   const [name, setname] = useState("");
   const [number, setnumber] = useState("");
   const [people, setpeople] = useState("");
   const [data, setdata] = useState(null);
-  const [table, settable] = useState(null);
+  const [bookTable, setbookTable] = useState([]);
+  const [change, setchange] = useState(false);
 
   const tables = [
     { table: 1, place: "Corner With 4 Seets", size: 4 },
@@ -33,18 +35,32 @@ export default function Booking() {
   ];
 
   const id = JSON.parse(JSON.stringify(localStorage.getItem("user")));
-  // console.log(id);
 
   useEffect(() => {
     Authaxios.get(`UsersById/${id}`)
       .then((res) => {
         setdata(res.data);
-        console.log(res.data);
       })
       .catch((err) => console.error(err.message));
-  }, [id]);
+  }, [id, change]);
 
   const dispatch = useDispatch();
+
+  const books = (itm) => {
+    if (
+      bookTable.find((nam) => Number(nam) === Number(itm.table)) === itm.table
+    ) {
+      var arr = [...bookTable];
+      for (var i = 0; i < arr.length; i++) {
+        if (arr[i] === itm.table) {
+          arr.splice(i, 1);
+        }
+      }
+      setbookTable(arr);
+    } else {
+      setbookTable((bookTable) => [...bookTable, itm.table]);
+    }
+  };
 
   const update = (x) => {
     setModalShow(true);
@@ -53,14 +69,16 @@ export default function Booking() {
       settime(data.time);
       setname(data.userName);
       setpeople(Number(data.people));
-      settable(data.table);
+      setbookTable(data.table.split(",").map(Number));
     }
   };
+
+  const times = moment().startOf("day").seconds(time).format("H:mm");
+  const tableBookings = bookTable.join(",");
 
   const terminate = () => {
     Authaxios.delete(`DeleteUsersById/${id}`)
       .then((res) => {
-        console.log(res.data);
         setModalShow(false);
         dispatch(homeProduct(null));
         localStorage.removeItem("user");
@@ -69,8 +87,20 @@ export default function Booking() {
   };
 
   const edit = () => {
-    setModalShow(false);
+    Authaxios.put(`UpdateUsersById/${id}`, {
+      userName: `${name}`,
+      mobile: `${number}`,
+      people: Number(people),
+      time: `${times}`,
+      table: `${tableBookings}`,
+    })
+      .then((res) => {
+        setModalShow(false);
+        setchange(!change);
+      })
+      .catch((err) => console.error(err.message));
   };
+
   return (
     <div>
       <div className="booking2" style={{ top: `${difHeight}px` }}>
@@ -189,6 +219,28 @@ export default function Booking() {
                   />
                 </Form.Group>
               </Form>
+              <Form.Label>Choose Table</Form.Label>
+              <Row>
+                {tables.map((itm, index) => (
+                  <Col lg={3} key={index} className="mb-3">
+                    <Button
+                      variant={
+                        bookTable.find(
+                          (nam) => Number(nam) === Number(itm.table)
+                        ) === itm.table
+                          ? "info"
+                          : "outline-info"
+                      }
+                      onClick={() => books(itm)}
+                    >
+                      <p className="mb-0">Table {itm.table}</p>
+                      <Badge bg="warning" text="dark">
+                        {itm.place}
+                      </Badge>
+                    </Button>
+                  </Col>
+                ))}
+              </Row>
             </Modal.Body>
             <Modal.Footer>
               <div className="d-flex w-100 justify-content-evenly">

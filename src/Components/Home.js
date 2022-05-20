@@ -21,6 +21,7 @@ export default function Home() {
   const [number, setnumber] = useState("");
   const [people, setpeople] = useState("");
   const [timeErr, settimeErr] = useState(true);
+  const [change, setchange] = useState(false);
 
   const dispatch = useDispatch();
   const token = useSelector((state) => state.addHome.home);
@@ -41,11 +42,12 @@ export default function Home() {
   const cancels = () => {
     setModalShow(false);
     setcount(1);
-    setbookTable(null);
+    setbookTable([]);
     setname("");
     setnumber("");
     setpeople("");
     settime("00:00");
+    setchange(false);
   };
 
   const books = (itm) => {
@@ -79,10 +81,16 @@ export default function Home() {
         table: `${tableBookings}`,
       })
         .then((res) => {
-          console.log(res.data);
           localStorage.setItem("user", res.data._id);
           dispatch(homeProduct(res.data._id));
           setModalShow(false);
+          setcount(1);
+          setbookTable([]);
+          setname("");
+          setnumber("");
+          setpeople("");
+          settime("00:00");
+          setchange(false);
         })
         .catch((err) => console.error(err.message));
     }
@@ -96,14 +104,18 @@ export default function Home() {
       if (Number(times.split(":")[0]) === 20) {
         if (Number(times.split(":")[1]) === 0) {
           settimeErr(false);
+          setchange(true);
         } else {
           settimeErr(true);
+          setchange(false);
         }
       } else {
         settimeErr(false);
+        setchange(true);
       }
     } else {
       settimeErr(true);
+      setchange(false);
     }
   }, [times]);
 
@@ -249,7 +261,7 @@ export default function Home() {
                 className="w-25"
                 onClick={counting}
                 disabled={
-                  name !== "" && number !== "" && people !== "" && time !== null
+                  name !== "" && number !== "" && people !== "" && change
                     ? false
                     : true
                 }
