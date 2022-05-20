@@ -8,7 +8,7 @@ import Booking from "./Booking";
 import { useDispatch, useSelector } from "react-redux";
 import { homeProduct } from "../Redux/Action/Action";
 import moment from "moment";
-// import Authaxios from "../Interceptor/Authaxios";
+import Authaxios from "../Interceptor/Authaxios";
 
 export default function Home() {
   const height = window.innerHeight;
@@ -65,25 +65,26 @@ export default function Home() {
   };
 
   const times = moment().startOf("day").seconds(time).format("H:mm");
+  const tableBookings = bookTable.join(",");
 
   const counting = () => {
     if (count === 1) {
       setcount(2);
     } else {
-      setModalShow(false);
-      localStorage.setItem("user", "demo");
-      dispatch(homeProduct("demo"));
-      // Authaxios
-      //   .post("apiCall")
-      //   .then((res) => {
-      //     console.log(res.data);
-      //     if (res.data === "success") {
-      //       setModalShow(false);
-      //     } else {
-      //       alert("Please Try Again");
-      //     }
-      //   })
-      //   .catch((err) => console.error(err.message));
+      Authaxios.post("Users", {
+        userName: `${name}`,
+        mobile: `${number}`,
+        people: Number(people),
+        time: `${times}`,
+        table: `${tableBookings}`,
+      })
+        .then((res) => {
+          console.log(res.data);
+          localStorage.setItem("user", res.data._id);
+          dispatch(homeProduct(res.data._id));
+          setModalShow(false);
+        })
+        .catch((err) => console.error(err.message));
     }
   };
 

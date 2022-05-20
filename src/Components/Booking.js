@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Badge, Button, Form, Modal } from "react-bootstrap";
 import Bookings from "../assets/img/booking.jpg";
 import "../assets/css/booking.css";
 import TimePicker from "react-bootstrap-time-picker";
 import { useDispatch } from "react-redux";
 import { homeProduct } from "../Redux/Action/Action";
+import Authaxios from "../Interceptor/Authaxios";
 
 export default function Booking() {
   const height = window.innerHeight;
@@ -15,6 +16,33 @@ export default function Booking() {
   const [name, setname] = useState("");
   const [number, setnumber] = useState("");
   const [people, setpeople] = useState("");
+  const [data, setdata] = useState(null);
+  const [table, settable] = useState(null);
+
+  const tables = [
+    { table: 1, place: "Corner With 4 Seets", size: 4 },
+    { table: 2, place: "Window With 2 Seets", size: 2 },
+    { table: 3, place: "Center With 4 Seets", size: 4 },
+    { table: 4, place: "Corner With 2 Seets", size: 2 },
+    { table: 5, place: "Window With 4 Seets", size: 4 },
+    { table: 6, place: "Center With 2 Seets", size: 2 },
+    { table: 7, place: "Corner With 4 Seets", size: 4 },
+    { table: 8, place: "Window With 2 Seets", size: 2 },
+    { table: 9, place: "Center With 4 Seets", size: 4 },
+    { table: 10, place: "Corner With 2 Seets", size: 2 },
+  ];
+
+  const id = JSON.parse(JSON.stringify(localStorage.getItem("user")));
+  // console.log(id);
+
+  useEffect(() => {
+    Authaxios.get(`UsersById/${id}`)
+      .then((res) => {
+        setdata(res.data);
+        console.log(res.data);
+      })
+      .catch((err) => console.error(err.message));
+  }, [id]);
 
   const dispatch = useDispatch();
 
@@ -22,17 +50,22 @@ export default function Booking() {
     setModalShow(true);
     setmodal(x);
     if (x === 2) {
-      settime("10:30");
-      setname("Mohanraj");
-      setnumber("6544");
-      setpeople(2);
+      settime(data.time);
+      setname(data.userName);
+      setpeople(Number(data.people));
+      settable(data.table);
     }
   };
 
   const terminate = () => {
-    setModalShow(false);
-    dispatch(homeProduct(null));
-    localStorage.removeItem("user");
+    Authaxios.delete(`DeleteUsersById/${id}`)
+      .then((res) => {
+        console.log(res.data);
+        setModalShow(false);
+        dispatch(homeProduct(null));
+        localStorage.removeItem("user");
+      })
+      .catch((err) => console.error(err.message));
   };
 
   const edit = () => {
@@ -47,19 +80,19 @@ export default function Booking() {
             <h5 className="w-100 d-flex">
               <b className="w-50">Table No :</b>{" "}
               <Badge bg="secondary" text="light" className="w-50">
-                1,2
+                {data !== null && data.table}
               </Badge>
             </h5>
             <h5 className="w-100 d-flex">
               <b className="w-50">People :</b>{" "}
               <Badge bg="secondary" text="light" className="w-50">
-                4
+                {data !== null && data.people}
               </Badge>
             </h5>
             <h5 className="w-100 d-flex">
               <b className="w-50">Time :</b>{" "}
               <Badge bg="secondary" text="light" className="w-50">
-                10:03
+                {data !== null && data.time}
               </Badge>
             </h5>
           </div>
